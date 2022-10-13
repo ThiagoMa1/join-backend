@@ -21,7 +21,9 @@ const useGeocoding = (cliente: any, endereço: any) => {
       endereço.bairro
     )}+${handleSpaces(endereço.cidade)}+${handleSpaces(
       endereço.estado
-    )}+Brasil+27211670&key=4abf4c30125b4cf49618dad48c640627&language=en&pretty=1`,
+    )}+Brasil+${
+      endereço.cep
+    }&key=4abf4c30125b4cf49618dad48c640627&language=en&pretty=1`,
     (response: any) => {
       response.on("data", (chunk: any) => {
         data += chunk;
