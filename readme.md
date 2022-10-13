@@ -93,14 +93,7 @@ Remoção(Clientes + Endereço) = {
 
 ## 📷Demonstração
 
-<div style="text-align: center;">
-	<video width="900" height="" controls>
-		<source src="./github/video_demonstracao.mp4" type="video/mp4">
-	</video>
-	<br/>
-	<a href="https://screenrec.com/share/10sqB9Iumj">Assista no link</a>
-</div>
-<br>
+[Assista ao Video](https://youtu.be/4o5pwIVrPtM)
 
 ## Opções
 
