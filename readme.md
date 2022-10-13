@@ -3,13 +3,6 @@
 </h1>
 <br>
 
-<!-- <p align="center">
- <a href="#sobre">Sobre</a> •
- <a href="#📷">Demonstração</a> •
- <a href="#como rodar o projeto">Como Rodar o Projeto</a> •
- <a href="#🚀tecnologias">Tecnologias</a>
-</p><hr> -->
-
 <br>
 
 ## Sobre
@@ -98,10 +91,10 @@ Remoção(Clientes + Endereço) = {
 }
 ```
 
-## 📷
+## 📷Demonstração
 
 <div style="text-align: center;">
-	<video width="320" height="240" controls>
+	<video width="900" height="" controls>
 		<source src="./github/video_demonstracao.mp4" type="video/mp4">
 	</video>
 	<br/>
