@@ -1,4 +1,6 @@
 import { NextFunction, Request, Response } from "express";
+const { Op } = require("sequelize");
+
 import db from "../../models/";
 
 const Cliente = db.Cliente;
@@ -73,6 +75,38 @@ const postAddCliente = (req: Request, res: Response) => {
     .catch((err: Error) => res.status(400).send(err.message));
 };
 
+const postAddEndereço = (req: Request, res: Response) => {
+  const clienteId = req.params.clienteId;
+  const reqEndereço = req.body;
+  let newCliente: any;
+
+  Cliente.findOne({
+    where: { id: clienteId },
+  })
+    .then((cliente: any) => {
+      newCliente = cliente;
+      return cliente.getEndereços({
+        where: {
+          [Op.and]: [
+            { bairro: reqEndereço.bairro },
+            { número: reqEndereço.número },
+            { cidade: reqEndereço.cidade },
+          ],
+        },
+      });
+    })
+    .then((endereço: any) => {
+      if (!endereço.length) {
+        return newCliente.createEndereço(reqEndereço);
+      } else {
+        return res.send(
+          "Endereço já cadastrado no cliente. Tente cadastrar outro."
+        );
+      }
+    })
+    .catch((err: Error) => console.log(err));
+};
+
 /////////////////////////////////// READ
 
 // FIND AND SEND AN ARRAY WITH "id" AND "nome_do_contato" FIELDS OF ALL THE CLIENTES
@@ -106,9 +140,35 @@ const getClienteById = (req: Request, res: Response) => {
     .catch((err: Error) => console.log(err));
 };
 
+// EDIT A CLIENTE DATA BY IT'S "id"
+const postEditClienteById = (req: Request, res: Response) => {
+  const clienteId = req.params.clienteId;
+  const changes = req.body;
+
+  Cliente.update(changes, { where: { id: clienteId } })
+    .then()
+    .catch((err: Error) => console.log(err));
+};
+
+// EDIT A ENDEREÇO DATA BY IT'S CLIENTE "id"
+const postEditEndereçoById = (req: Request, res: Response) => {
+  const clienteId = req.params.clienteId;
+  const enderecoId = req.params.enderecoId;
+  const changes = req.body;
+
+  Endereço.findOne({ where: { [Op.and]: [{ clienteId }, { id: enderecoId }] } })
+    .then((endereço: any) => {
+      endereço.update(changes);
+    })
+    .catch((err: Error) => console.log(err));
+};
+
 export const clientesController = {
   postAddCliente: postAddCliente,
   getClientesNames: getClientesNames,
   getAllClientes: getAllClientes,
   getClienteById: getClienteById,
+  postEditClienteById: postEditClienteById,
+  postEditEndereçoById: postEditEndereçoById,
+  postAddEndereço: postAddEndereço,
 };

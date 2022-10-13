@@ -5,18 +5,30 @@ import { clientesController } from "../controllers/clientes";
 const router = express.Router();
 
 // localhost:3000/
-router.get("/", clientesController.getClientesNames);
 
+////// CRIAÇÃO
 router.post("/add-cliente", clientesController.postAddCliente);
+
+router.post("/add-endereco/:clienteId", clientesController.postAddEndereço);
+
+////// LEITURA
+router.get("/", clientesController.getClientesNames);
 
 router.get("/clientes", clientesController.getAllClientes);
 
-router.get("/cliente/:clienteId", clientesController.getClienteById);
+router.get("/clientes/:clienteId", clientesController.getClienteById);
 
-router.post("/edit-cliente/:id");
+////// ALTERAÇÃO
+router.post("/edit-cliente/:clienteId", clientesController.postEditClienteById);
 
-router.post("/add-endereço/:id");
+router.post(
+  "/edit-endereco/:clienteId/:enderecoId",
+  clientesController.postEditEndereçoById
+);
 
-router.post("/delete-cliente/:userId/:id");
+////// REMOÇÃO
+router.post("/delete-cliente/:clienteId");
+
+router.post("/delete-endereco/:clienteId/:enderecoId");
 
 export default router;
