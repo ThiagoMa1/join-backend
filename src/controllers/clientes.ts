@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import http from "http";
 const { Op } = require("sequelize");
 
 import db from "../../models/";
@@ -7,6 +8,42 @@ const Cliente = db.Cliente;
 const Endereço = db.Endereço;
 
 /////////////////////////////////// CREATE ///////////////////////////////////
+
+// FUNÇÃO PARA USAR GEOCODING PARA PEGAR A LATITUDE E LONGITUDE, NÃO FOI USADO A API DO GOOGLE POR SER PAGA 0.005 USD per each(5.00 USD per 1000)
+const useGeocoding = (cliente: any, endereço: any) => {
+  const handleSpaces = (prop: string) => {
+    return prop.split(" ").join("%20");
+  };
+
+  let data: any = "";
+  const request = http.request(
+    `http://api.opencagedata.com/geocode/v1/json?q=${handleSpaces(
+      endereço.bairro
+    )}+${handleSpaces(endereço.cidade)}+${handleSpaces(
+      endereço.estado
+    )}+Brasil+27211670&key=4abf4c30125b4cf49618dad48c640627&language=en&pretty=1`,
+    (response: any) => {
+      response.on("data", (chunk: any) => {
+        data += chunk;
+      });
+
+      // The whole response has been received. Print out the result.
+      response.on("end", () => {
+        data = JSON.parse(data);
+        const geometry = data.results[0].geometry;
+        return cliente.createEndereço({
+          ...endereço,
+          latitude: geometry.lat,
+          longitude: geometry.lng,
+        });
+      });
+    }
+  );
+  request.on("error", (error: Error) => {
+    console.error(error);
+  });
+  request.end();
+};
 
 // CREATE AND CHECK IF THERE ALREADY HAS THE GIVEN CNPJ AND ALSO POPULATES THE "Endereço" TABLE
 // CRIA E VERIFICA SE JA EXISTE ALGUM CLIENTE COM O CNPJ ENVIADO E TAMBÉM POPULA A TABELA "Endereço"
@@ -35,7 +72,7 @@ const postAddCliente = (req: Request, res: Response) => {
     })
     .then((cliente: any) => {
       if (cliente.dataValues) {
-        return cliente.createEndereço({
+        return useGeocoding(cliente, {
           logradouro,
           número,
           complemento,
@@ -51,6 +88,7 @@ const postAddCliente = (req: Request, res: Response) => {
     .catch((err: Error) => res.status(400).send(err.message));
 };
 
+// ADICIONA ENDEREÇO AO USUÁRIO CORRESPONDENTE A "id" NO PARAMS DA URL
 const postAddEndereço = (req: Request, res: Response) => {
   const clienteId = req.params.clienteId;
   const reqEndereço = req.body;
@@ -77,7 +115,7 @@ const postAddEndereço = (req: Request, res: Response) => {
     })
     .then(async (endereço: any) => {
       if (!endereço.length) {
-        await newCliente.createEndereço(reqEndereço);
+        await useGeocoding(newCliente, reqEndereço);
         return res.send("Endereço criado com sucesso!");
       } else {
         return res.send(

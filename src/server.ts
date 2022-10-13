@@ -11,8 +11,8 @@ app.use(express.json());
 app.use(clientesRouter);
 
 db.sequelize
-  .sync({ force: true })
-  // .sync()
+  // .sync({ force: true })
+  .sync()
   .then((result: any) => {
     app.listen(port);
   })
