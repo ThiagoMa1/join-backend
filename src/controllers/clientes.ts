@@ -97,7 +97,7 @@ const postAddCliente = (req: Request, res: Response) => {
 
         return res.send("Usuário criado sem endereço!");
       })
-      .catch((err: Error) => res.status(400).send(err.message));
+      .catch((err: Error) => console.log(err.message));
 };
 
 // ADICIONA ENDEREÇO AO USUÁRIO CORRESPONDENTE A "id" NO PARAMS DA URL
@@ -146,8 +146,8 @@ const getClientesNames = (req: Request, res: Response) => {
   Cliente.findAll({
     attributes: ["id", ["nome_do_contato", "Nome do Contato"]],
   })
-    .then(([clientes]: any) => {
-      if (!clientes) {
+    .then((clientes: any) => {
+      if (!clientes[0]) {
         return res.send("Não há clientes registrados");
       }
       return res.send(JSON.stringify(clientes, null, 2));
@@ -159,8 +159,8 @@ const getClientesNames = (req: Request, res: Response) => {
 // ENCONTRA E ENVIA UM ARRAY COM TODAS AS INFORMAÇÕES SOBRE TODOS OS CLIENTES
 const getAllClientes = (req: Request, res: Response) => {
   Cliente.findAll({ include: Endereço })
-    .then(([clientes]: any) => {
-      if (!clientes) {
+    .then((clientes: any) => {
+      if (!clientes[0]) {
         return res.send("Não há clientes registrados");
       }
       return res.send(JSON.stringify(clientes, null, 2));
@@ -191,15 +191,15 @@ const postEditClienteById = (req: Request, res: Response) => {
   const changes = req.body;
 
   Cliente.update(changes, { where: { id: clienteId } })
-    .then(([cliente]: any) => {
-      if (cliente === 0) {
+    .then((cliente: any) => {
+      if (cliente[0] === 0) {
         return res.send(
           "O id informado não corresponde a um endereço cadastrado!"
         );
       }
       return res.send("Cliente Alterado!");
     })
-    .catch((err: Error) => res.send(err.message));
+    .catch((err: Error) => console.log(err));
 };
 
 // EDIT A ENDEREÇO DATA BY IT'S CLIENTE "id"

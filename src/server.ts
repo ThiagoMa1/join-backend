@@ -11,8 +11,8 @@ app.use(express.json());
 app.use(clientesRouter);
 
 db.sequelize
-  .sync({ force: true }) // To overwrite the database content(clean)
-  // .sync()
+  // .sync({ force: true }) // To overwrite the database content(clean)
+  .sync()
   .then((result: any) => {
     app.listen(port);
   })

@@ -101,9 +101,11 @@ Remoção(Clientes + Endereço) = {
 ## 📷
 
 <div style="text-align: center;">
-  <img alt="Gif" title="Gif" src="./github/animação.gif"/><hr>
-  <img alt="main page" title="MainPage" src="./github/web_main.png" style="width: 49%;"/>
-  <img alt="publique um anúncio" title="PubliqueUmAnúncio" src="./github/web_anunciar.png" style="width: 49%;" /><hr>
+	<video width="320" height="240" controls>
+		<source src="./github/video_demonstracao.mp4" type="video/mp4">
+	</video>
+	<br/>
+	<a href="https://screenrec.com/share/10sqB9Iumj">Assista no link</a>
 </div>
 <br>
 
