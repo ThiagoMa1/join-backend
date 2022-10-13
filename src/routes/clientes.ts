@@ -23,12 +23,15 @@ router.post("/edit-cliente/:clienteId", clientesController.postEditClienteById);
 
 router.post(
   "/edit-endereco/:clienteId/:enderecoId",
-  clientesController.postEditEndereçoById
+  clientesController.postEditEndereçoByIds
 );
 
 ////// REMOÇÃO
-router.post("/delete-cliente/:clienteId");
+router.post("/delete-cliente/:clienteId", clientesController.deleteClienteById);
 
-router.post("/delete-endereco/:clienteId/:enderecoId");
+router.post(
+  "/delete-endereco/:clienteId/:enderecoId",
+  clientesController.deleteEndereçoByIds
+);
 
 export default router;

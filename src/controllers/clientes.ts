@@ -6,34 +6,10 @@ import db from "../../models/";
 const Cliente = db.Cliente;
 const Endereço = db.Endereço;
 
-interface ClienteType {
-  0?: [
-    dataValues: {
-      id: number;
-      cnpj: number;
-      razão_social: string;
-      nome_do_contato: string;
-      telefone: number;
-    }
-  ];
-}
-
-interface EndereçoType {
-  logradouro: string;
-  número: number;
-  complemento: string;
-  bairro: string;
-  cidade: string;
-  estado: string;
-  cep: number;
-  // latitude: undefined;
-  // longitude: undefined;
-  clienteId: number;
-}
-
-/////////////////////////////////// CREATE
+/////////////////////////////////// CREATE ///////////////////////////////////
 
 // CREATE AND CHECK IF THERE ALREADY HAS THE GIVEN CNPJ AND ALSO POPULATES THE "Endereço" TABLE
+// CRIA E VERIFICA SE JA EXISTE ALGUM CLIENTE COM O CNPJ ENVIADO E TAMBÉM POPULA A TABELA "Endereço"
 const postAddCliente = (req: Request, res: Response) => {
   const {
     cnpj,
@@ -54,7 +30,7 @@ const postAddCliente = (req: Request, res: Response) => {
       if (cliente) {
         return res.send("Cliente já cadastrado");
       }
-
+      res.send("Cliente cadastrado com sucesso!🥳");
       return Cliente.create({ cnpj, razão_social, nome_do_contato, telefone });
     })
     .then((cliente: any) => {
@@ -84,83 +60,154 @@ const postAddEndereço = (req: Request, res: Response) => {
     where: { id: clienteId },
   })
     .then((cliente: any) => {
-      newCliente = cliente;
-      return cliente.getEndereços({
-        where: {
-          [Op.and]: [
-            { bairro: reqEndereço.bairro },
-            { número: reqEndereço.número },
-            { cidade: reqEndereço.cidade },
-          ],
-        },
-      });
+      if (cliente) {
+        newCliente = cliente;
+        return cliente.getEndereços({
+          where: {
+            [Op.and]: [
+              { bairro: reqEndereço.bairro },
+              { número: reqEndereço.número },
+              { cidade: reqEndereço.cidade },
+            ],
+          },
+        });
+      } else {
+        return res.send("Não existe cliente com a id informada!");
+      }
     })
-    .then((endereço: any) => {
+    .then(async (endereço: any) => {
       if (!endereço.length) {
-        return newCliente.createEndereço(reqEndereço);
+        await newCliente.createEndereço(reqEndereço);
+        return res.send("Endereço criado com sucesso!");
       } else {
         return res.send(
           "Endereço já cadastrado no cliente. Tente cadastrar outro."
         );
       }
     })
-    .catch((err: Error) => console.log(err));
+    .catch((err: Error) => res.send(err.message));
 };
 
-/////////////////////////////////// READ
+/////////////////////////////////// READ ///////////////////////////////////
 
 // FIND AND SEND AN ARRAY WITH "id" AND "nome_do_contato" FIELDS OF ALL THE CLIENTES
+// ENCONTRA E ENVIA UM ARRAY COM OS CAMPOS "id" E "nome_do_contato" DE TODOS OS CLIENTES
 const getClientesNames = (req: Request, res: Response) => {
-  Cliente.findAll({ attributes: ["id", "nome_do_contato"] })
-    .then((clientes: ClienteType) => {
-      res.send(JSON.stringify(clientes, null, 2));
+  Cliente.findAll({
+    attributes: ["id", ["nome_do_contato", "Nome do Contato"]],
+  })
+    .then(([clientes]: any) => {
+      if (!clientes) {
+        return res.send("Não há clientes registrados");
+      }
+      return res.send(JSON.stringify(clientes, null, 2));
     })
-    .catch((err: Error) => console.log(err));
+    .catch((err: Error) => res.send(err.message));
 };
 
 // FIND AND SEND AN ARRAY WITH ALL THE INFORMATIONS ABOUT ALL THE CLIENTES
+// ENCONTRA E ENVIA UM ARRAY COM TODAS AS INFORMAÇÕES SOBRE TODOS OS CLIENTES
 const getAllClientes = (req: Request, res: Response) => {
   Cliente.findAll({ include: Endereço })
-    .then((clientes: ClienteType) => {
-      res.send(JSON.stringify(clientes, null, 2));
+    .then(([clientes]: any) => {
+      if (!clientes) {
+        return res.send("Não há clientes registrados");
+      }
+      return res.send(JSON.stringify(clientes, null, 2));
     })
-    .catch((err: Error) => console.log(err));
+    .catch((err: Error) => res.send(err.message));
 };
 
 // FIND A CLIENTE BY IT'S "id" AND SEND IT'S INFORMATIONS
+// ENCONTRA UM CLIENTE PELA SUA "id" E ENVIA SUAS INFORMAÇÕES
 const getClienteById = (req: Request, res: Response) => {
   const clienteId = req.params.clienteId;
   Cliente.findOne({ where: { id: clienteId }, include: Endereço })
     .then((cliente: any) => {
       if (!cliente) {
-        return res.send("Cliente não encontrado!");
+        return res.send("Não existe cliente com a id informada!");
       }
-      res.send(JSON.stringify(cliente, null, 2));
+      return res.send(JSON.stringify(cliente, null, 2));
     })
-    .catch((err: Error) => console.log(err));
+    .catch((err: Error) => res.send(err.message));
 };
 
+/////////////////////////////////// UPDATE ///////////////////////////////////
+
 // EDIT A CLIENTE DATA BY IT'S "id"
+// ALTERA OS DADOS DE UM CLIENTE PELA SUA "id"
 const postEditClienteById = (req: Request, res: Response) => {
   const clienteId = req.params.clienteId;
   const changes = req.body;
 
   Cliente.update(changes, { where: { id: clienteId } })
-    .then()
-    .catch((err: Error) => console.log(err));
+    .then(([cliente]: any) => {
+      if (cliente === 0) {
+        return res.send(
+          "O id informado não corresponde a um endereço cadastrado!"
+        );
+      }
+      return res.send("Cliente Alterado!");
+    })
+    .catch((err: Error) => res.send(err.message));
 };
 
 // EDIT A ENDEREÇO DATA BY IT'S CLIENTE "id"
-const postEditEndereçoById = (req: Request, res: Response) => {
+// ALTERA OS DADOS DE UM ENDEREÇO PELO "id" DO CLIENTE(dono do endereço)
+const postEditEndereçoByIds = (req: Request, res: Response) => {
   const clienteId = req.params.clienteId;
   const enderecoId = req.params.enderecoId;
   const changes = req.body;
 
   Endereço.findOne({ where: { [Op.and]: [{ clienteId }, { id: enderecoId }] } })
-    .then((endereço: any) => {
-      endereço.update(changes);
+    .then(async (endereço: any) => {
+      if (!endereço) {
+        return res.send(
+          "Os ids informados não correspondem a um endereço existente!"
+        );
+      }
+      await endereço.update(changes);
+      return res.send("Endereço Alterado!");
     })
-    .catch((err: Error) => console.log(err));
+    .catch((err: Error) => res.send(err.message));
+};
+
+/////////////////////////////////// DELETE ///////////////////////////////////
+
+// DELETE UM CLIENTE COM O ID QUE É PASSADO COMO PARAMETRO NA URL DA REQUISIÇÃO
+const deleteClienteById = (req: Request, res: Response) => {
+  const clienteId = req.params.clienteId;
+  Endereço.destroy({ where: { clienteId } })
+    .then(async (cliente: any) => {
+      if (cliente === 0) {
+        return res.send(
+          "O id informado não corresponde a um endereço cadastrado!"
+        );
+      }
+      await Cliente.destroy({ where: { id: clienteId } });
+      return res.send("Cliente excluído com sucesso!");
+    })
+    .catch((err: Error) => res.send(err.message));
+};
+
+// ENCONTRA E DELETA UM ENDEREÇO DE UM CLIENTE COM OS RESPECTIVOS IDS PASSADOS COMO PARAMETRO NA URL DA REQUISIÇÃO
+const deleteEndereçoByIds = (req: Request, res: Response) => {
+  const clienteId = req.params.clienteId;
+  const enderecoId = req.params.enderecoId;
+
+  Endereço.findOne({
+    where: { [Op.and]: [{ clienteId: clienteId }, { id: enderecoId }] },
+  })
+    .then(async (endereço: any) => {
+      if (!endereço) {
+        return res.send(
+          "Os ids informado não correspondem a um endereço cadastrado!"
+        );
+      }
+      await endereço.destroy();
+      return res.send("Endereço excluído com sucesso!");
+    })
+    .catch((err: Error) => res.send(err.message));
 };
 
 export const clientesController = {
@@ -169,6 +216,8 @@ export const clientesController = {
   getAllClientes: getAllClientes,
   getClienteById: getClienteById,
   postEditClienteById: postEditClienteById,
-  postEditEndereçoById: postEditEndereçoById,
+  postEditEndereçoByIds: postEditEndereçoByIds,
   postAddEndereço: postAddEndereço,
+  deleteClienteById: deleteClienteById,
+  deleteEndereçoByIds: deleteEndereçoByIds,
 };
