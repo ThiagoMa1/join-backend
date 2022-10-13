@@ -24,7 +24,7 @@ export = (sequelize: any, DataTypes: any) => {
         type: DataTypes.BIGINT,
         allowNull: false,
         validate: {
-          len: { args: [11, 11], msg: "Um CPF tem 11 caracteres" },
+          len: [14, 14],
         },
       },
       razão_social: {

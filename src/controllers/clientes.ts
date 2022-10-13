@@ -64,30 +64,40 @@ const postAddCliente = (req: Request, res: Response) => {
     cep,
   } = req.body;
 
-  Cliente.findOne({ where: { cnpj: cnpj } })
-    .then((cliente: any) => {
-      if (cliente) {
-        return res.send("Cliente já cadastrado");
-      }
-      res.send("Cliente cadastrado com sucesso!🥳");
-      return Cliente.create({ cnpj, razão_social, nome_do_contato, telefone });
-    })
-    .then((cliente: any) => {
-      if (cliente.dataValues) {
-        return useGeocoding(cliente, {
-          logradouro,
-          número,
-          complemento,
-          bairro,
-          cidade,
-          estado,
-          cep,
-        });
-      }
+  const cnpjValidator = cnpj.toString().length;
 
-      return res.send("Usuário criado sem endereço!");
-    })
-    .catch((err: Error) => res.status(400).send(err.message));
+  cnpjValidator !== 14 && res.send("CNPJ precisa ter 14 caracteres");
+
+  cnpjValidator === 14 &&
+    Cliente.findOne({ where: { cnpj: cnpj } })
+      .then((cliente: any) => {
+        if (cliente) {
+          return res.send("Cliente já cadastrado");
+        }
+        res.send("Cliente cadastrado com sucesso!🥳");
+        return Cliente.create({
+          cnpj,
+          razão_social,
+          nome_do_contato,
+          telefone,
+        });
+      })
+      .then((cliente: any) => {
+        if (cliente.dataValues) {
+          return useGeocoding(cliente, {
+            logradouro,
+            número,
+            complemento,
+            bairro,
+            cidade,
+            estado,
+            cep,
+          });
+        }
+
+        return res.send("Usuário criado sem endereço!");
+      })
+      .catch((err: Error) => res.status(400).send(err.message));
 };
 
 // ADICIONA ENDEREÇO AO USUÁRIO CORRESPONDENTE A "id" NO PARAMS DA URL
